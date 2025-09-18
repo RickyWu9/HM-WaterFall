@@ -27,8 +27,8 @@ def get_exif_date(image_path):
         if 'Exif' in exif_dict:
             # 查找日期时间标签
             for tag in ['DateTimeOriginal', 'DateTime']:
-                if piexif.ExifIFD[tag] in exif_dict['Exif']:
-                    date_str = exif_dict['Exif'][piexif.ExifIFD[tag]].decode('utf-8')
+                if getattr(piexif.ExifIFD, tag) in exif_dict['Exif']:
+                    date_str = exif_dict['Exif'][getattr(piexif.ExifIFD, tag)].decode('utf-8')
                     # 解析日期字符串并返回YYYY-MM-DD格式
                     dt = datetime.strptime(date_str, '%Y:%m:%d %H:%M:%S')
                     return dt.strftime('%Y-%m-%d')
@@ -57,7 +57,9 @@ def add_watermark(image_path, output_path, watermark_text, font_size=20,
             font = ImageFont.load_default()
         
         # 获取文本尺寸
-        text_width, text_height = draw.textsize(watermark_text, font=font)
+        bbox = draw.textbbox((0, 0), watermark_text, font=font)
+        text_width = bbox[2] - bbox[0]
+        text_height = bbox[3] - bbox[1]
         
         # 根据位置参数计算水印位置
         image_width, image_height = image.size
